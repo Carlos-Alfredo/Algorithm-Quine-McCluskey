@@ -1,1 +1,1 @@
-# Algorithm-Quine-McCluskey
+# Algorithm Quine-McCluskey
