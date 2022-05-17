@@ -95,6 +95,7 @@ int generate_inputs(int truth_table[],int size_table,int inputs[],int number_of_
       index++;
 		}
 	}
+	return index;
 }
 //Calculates the minimum solution from the input values and writes them in the soluction vector.
 //Returns the number of elements in the solution.
@@ -103,19 +104,28 @@ int QMAlgorithm(int inputs[],int number_of_inputs,int solution[],int number_of_v
   int next_inputs[power(2,number_of_variables-1)*number_of_variables];
   int solution_index=0;
   int aux=0;
+  int repetition=0;
   int number_of_combinations=0;
   int next_inputs_index=0;
   while(number_of_inputs>1)
   {
-    for(int i=0;i<number_of_inputs-1;i++)
+    for(int i=0;i<number_of_inputs;i++)
     {
       number_of_combinations=0;
-      for(int j=0;j<number_of_inputs-1;j++)
+      for(int j=0;j<number_of_inputs;j++)
       {
         aux=combine(inputs[i],inputs[j],number_of_variables);
         if(aux!=-1)
         {
-          if(j>i)
+          repetition=0;
+          for(int k=0;k<next_inputs_index;k++)
+          {
+            if(next_inputs[k]==aux)
+            {
+              repetition=1;
+            }
+          }
+          if(repetition==0)
           {
             next_inputs[next_inputs_index]=aux;
             next_inputs_index++;
@@ -190,14 +200,13 @@ void circuit_solver(int truth_table[],char equation[],int number_of_variables)
   number_of_inputs=generate_inputs(truth_table,size_table,inputs,number_of_variables);
   number_of_terms=QMAlgorithm(inputs,number_of_inputs,solution,number_of_variables);
   translate_solution(solution,number_of_terms,equation,number_of_variables);
-
 }
 int main(void) {
-  	int tabela_verdade[64]={0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1};
-  	int n_variaveis_max=6;
-  	char retorno[(n_variaveis_max+1)*power(2,n_variaveis_max)];
-  	retorno[0]='\0';
-  	circuit_solver(tabela_verdade,retorno,n_variaveis_max);
-  	printf("%s\n",retorno);
+  int tabela_verdade[64]={0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int n_variaveis_max=6;
+  char retorno[(n_variaveis_max+1)*power(2,n_variaveis_max)];
+  retorno[0]='\0';
+  circuit_solver(tabela_verdade,retorno,n_variaveis_max);
+  printf("%s\n",retorno);
 	return 0;
 }
