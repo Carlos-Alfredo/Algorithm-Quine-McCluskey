@@ -34,6 +34,7 @@ int position_simplify(int input1,int input2,int number_of_variables)
 		return -1;
 	}
 }
+
 //Returns the combination between input1 and input2. If there is no valid combination returns -1.
 int combine(int input1,int input2,int number_of_variables)
 {
@@ -47,6 +48,23 @@ int combine(int input1,int input2,int number_of_variables)
 	}
 	return combinacao;
 }
+
+//Checks is input1 contains input2. Returns 1 if true, returns 0 if false.
+int contains(int input1, int input2, int number_of_variables)
+{
+  int contains=1;
+	for(int i=0;i<number_of_variables;i++)
+	{
+		if((input1%3 != input2%3) && (input1%3!=2))
+		{
+			contains=0;
+		}
+		input1=input1/3;
+		input2=input2/3;
+	}
+	return contains;
+}
+
 
 //Translates a input number to it's boolean form.
 //Returns the number of characters
@@ -102,11 +120,21 @@ int generate_inputs(int truth_table[],int size_table,int inputs[],int number_of_
 int QMAlgorithm(int inputs[],int number_of_inputs,int solution[],int number_of_variables)
 {
   int next_inputs[power(2,number_of_variables-1)*number_of_variables];
-  int solution_index=0;
+  int prime_implicants[power(2,number_of_variables-1)*number_of_variables];
+  int prime_index=0;
   int aux=0;
   int repetition=0;
   int number_of_combinations=0;
   int next_inputs_index=0;
+  int number_of_minterms=number_of_inputs;
+  int number_of_primes=0;
+  int minterms[number_of_minterms];
+  int min_primes=0;
+  int index_last_prime=0;
+  for(int i=0;i<number_of_minterms;i++)
+  {
+    minterms[i]=inputs[i];
+  }
   while(number_of_inputs>1)
   {
     for(int i=0;i<number_of_inputs;i++)
@@ -135,8 +163,8 @@ int QMAlgorithm(int inputs[],int number_of_inputs,int solution[],int number_of_v
       }
       if(number_of_combinations==0)
       {
-        solution[solution_index]=inputs[i];
-        solution_index++;
+        prime_implicants[prime_index]=inputs[i];
+        prime_index++;
       }
     }
     for(int i=0;i<next_inputs_index;i++)
@@ -148,10 +176,45 @@ int QMAlgorithm(int inputs[],int number_of_inputs,int solution[],int number_of_v
   }
   if(number_of_inputs==1)
   {
-    solution[solution_index]=inputs[0];
-    solution_index++;
+    prime_implicants[prime_index]=inputs[0];
+    prime_index++;
   }
-  return solution_index;
+  min_primes=-1;
+  number_of_primes=prime_index;
+  while(number_of_minterms>0)
+  {
+    for(int i=0;i<number_of_minterms;i++)
+    {
+      aux=0;
+      for(int k=0;k<number_of_primes;k++)
+      {
+        if(contains(prime_implicants[k],minterms[i]))
+        {
+          aux++;
+        }
+      }
+      if(aux<min_primes || min_primes==-1)
+      {
+        min_primes=aux;
+      }
+    }
+    for(int i=0;i<number_of_minterms;i++)
+    {
+      aux=0;
+      for(int k=0;k<number_of_primes;k++)
+      {
+        if(contains(prime_implicants[k],minterms[i]))
+        {
+          aux++;
+          index_last_prime=k;
+        }
+      }
+      if(aux==min_primes)
+      {
+        min_primes=aux;
+      }
+    }
+  }
 }
 
 void translate_solution(int solution[],int number_of_terms,char translated_solution[],int number_of_variables)
