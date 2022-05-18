@@ -115,6 +115,49 @@ int generate_inputs(int truth_table[],int size_table,int inputs[],int number_of_
 	}
 	return index;
 }
+//From the minterms and prime implicants generates the minimal solution
+
+int minimal_solution(int minterms[],int number_of_minterms,int prime_implicants[],int number_of_prime_implicants,int solution[],int number_of_variables)
+{
+  int aux;
+  int solution_index=0;
+  int index_last_prime=0;
+  int index_min_prime=0;
+  int min_primes=0;
+  while(number_of_minterms>0)
+  {
+    for(int i=0;i<number_of_minterms;i++)
+    {
+      aux=0;
+      for(int k=0;k<number_of_prime_implicants;k++)
+      {
+        if(contains(prime_implicants[k],minterms[i],number_of_variables))
+        {
+          aux++;
+          index_last_prime=k;
+        }
+      }
+      if(aux<min_primes || min_primes==-1)
+      {
+        min_primes=aux;
+        index_min_prime=index_last_prime;
+      }
+    }
+    solution[solution_index]=prime_implicants[index_min_prime];
+    solution_index++;
+    for(int i=number_of_minterms-1;i>=0;i--)
+    {
+      if(contains(prime_implicants[index_min_prime],minterms[i],number_of_variables))
+      {
+        minterms[i]=minterms[number_of_minterms-1];
+        number_of_minterms--;
+      }
+    }
+    prime_implicants[index_min_prime]=prime_implicants[number_of_prime_implicants-1];
+    number_of_prime_implicants--;
+  }
+  return solution_index;
+}
 //Calculates the minimum solution from the input values and writes them in the soluction vector.
 //Returns the number of elements in the solution.
 int QMAlgorithm(int inputs[],int number_of_inputs,int solution[],int number_of_variables)
@@ -127,10 +170,7 @@ int QMAlgorithm(int inputs[],int number_of_inputs,int solution[],int number_of_v
   int number_of_combinations=0;
   int next_inputs_index=0;
   int number_of_minterms=number_of_inputs;
-  int number_of_primes=0;
   int minterms[number_of_minterms];
-  int min_primes=0;
-  int index_last_prime=0;
   for(int i=0;i<number_of_minterms;i++)
   {
     minterms[i]=inputs[i];
@@ -179,42 +219,7 @@ int QMAlgorithm(int inputs[],int number_of_inputs,int solution[],int number_of_v
     prime_implicants[prime_index]=inputs[0];
     prime_index++;
   }
-  min_primes=-1;
-  number_of_primes=prime_index;
-  while(number_of_minterms>0)
-  {
-    for(int i=0;i<number_of_minterms;i++)
-    {
-      aux=0;
-      for(int k=0;k<number_of_primes;k++)
-      {
-        if(contains(prime_implicants[k],minterms[i]))
-        {
-          aux++;
-        }
-      }
-      if(aux<min_primes || min_primes==-1)
-      {
-        min_primes=aux;
-      }
-    }
-    for(int i=0;i<number_of_minterms;i++)
-    {
-      aux=0;
-      for(int k=0;k<number_of_primes;k++)
-      {
-        if(contains(prime_implicants[k],minterms[i]))
-        {
-          aux++;
-          index_last_prime=k;
-        }
-      }
-      if(aux==min_primes)
-      {
-        min_primes=aux;
-      }
-    }
-  }
+  return minimal_solution(minterms,number_of_minterms,prime_implicants,prime_index,solution,number_of_variables);
 }
 
 void translate_solution(int solution[],int number_of_terms,char translated_solution[],int number_of_variables)
