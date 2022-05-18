@@ -123,7 +123,7 @@ int minimal_solution(int minterms[],int number_of_minterms,int prime_implicants[
   int solution_index=0;
   int index_last_prime=0;
   int index_min_prime=0;
-  int min_primes=0;
+  int min_primes=-1;
   while(number_of_minterms>0)
   {
     for(int i=0;i<number_of_minterms;i++)
