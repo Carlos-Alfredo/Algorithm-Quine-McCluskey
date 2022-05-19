@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-const char variable[26]={'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
+#define number_of_variables 5
 
 int power(int base,int expoente){
   	int resposta=1;
@@ -9,9 +9,26 @@ int power(int base,int expoente){
   	}
   	return resposta;
 }
+
+//int truth_table[16]={1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+
+int truth_table[32]={1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+
+int minterms[32]; //Minterms derivated from the truth table
+
+int inputs[32]; //Starting Prime Implicants at each round of simplification in QM Algorithm
+
+int solution[32]; //Final group of Prime Implicants
+
+char simplified_equation[200]; //String form of solution
+
+const char variable[26]={'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
+
+
+
 //Returns the index where input1 and input2 can be combined. If there is valid index, returns -1.
 //input1,input2 are truth table inputs in base 3. Number_of_variables is the number of entry variables in the circuit.
-int position_simplify(int input1,int input2,int number_of_variables)
+int position_simplify(int input1,int input2)
 {
 	int numero_diferencas=0;
 	int posicao=0;
@@ -36,9 +53,9 @@ int position_simplify(int input1,int input2,int number_of_variables)
 }
 
 //Returns the combination between input1 and input2. If there is no valid combination returns -1.
-int combine(int input1,int input2,int number_of_variables)
+int combine(int input1,int input2)
 {
-	int posicao=position_simplify(input1,input2,number_of_variables);
+	int posicao=position_simplify(input1,input2);
 	int aux=0;
 	int combinacao=-1;
 	if(posicao!=-1)
@@ -50,7 +67,7 @@ int combine(int input1,int input2,int number_of_variables)
 }
 
 //Checks is input1 contains input2. Returns 1 if true, returns 0 if false.
-int contains(int input1, int input2, int number_of_variables)
+int contains(int input1, int input2)
 {
   int contains=1;
 	for(int i=0;i<number_of_variables;i++)
@@ -68,7 +85,7 @@ int contains(int input1, int input2, int number_of_variables)
 
 //Translates a input number to it's boolean form.
 //Returns the number of characters
-void number_to_boolean(int input,char boolean[],int number_of_variables)
+void number_to_boolean(int input,char boolean[])
 {
   	int index=0;
   	int aux=power(3,number_of_variables-1);
@@ -88,9 +105,9 @@ void number_to_boolean(int input,char boolean[],int number_of_variables)
   	}
   	boolean[index]='\0';
 }
-//Creates from the truth table the input vector for the QM Algorithm
+//Creates from the truth table the minterms for the QM Algorithm
 //Returns the number of inputs
-int generate_inputs(int truth_table[],int size_table,int inputs[],int number_of_variables)
+int generate_inputs(int size_table)
 {
 	int pot2=1;
 	int pot3=1;
@@ -109,7 +126,7 @@ int generate_inputs(int truth_table[],int size_table,int inputs[],int number_of_
 				pot2=pot2*2;
 				pot3=pot3*3;
 			}
-      inputs[index]=aux;
+      minterms[index]=aux;
       index++;
 		}
 	}
@@ -117,7 +134,7 @@ int generate_inputs(int truth_table[],int size_table,int inputs[],int number_of_
 }
 //From the minterms and prime implicants generates the minimal solution
 
-int minimal_solution(int minterms[],int number_of_minterms,int prime_implicants[],int number_of_prime_implicants,int solution[],int number_of_variables)
+int minimal_solution(int number_of_minterms,int prime_implicants[],int number_of_prime_implicants)
 {
   int aux;
   int solution_index=0;
@@ -132,7 +149,7 @@ int minimal_solution(int minterms[],int number_of_minterms,int prime_implicants[
       aux=0;
       for(int k=0;k<number_of_prime_implicants;k++)
       {
-        if(contains(prime_implicants[k],minterms[i],number_of_variables))
+        if(contains(prime_implicants[k],minterms[i]))
         {
           aux++;
           index_last_prime=k;
@@ -148,7 +165,7 @@ int minimal_solution(int minterms[],int number_of_minterms,int prime_implicants[
     solution_index++;
     for(int i=number_of_minterms-1;i>=0;i--)
     {
-      if(contains(prime_implicants[index_min_prime],minterms[i],number_of_variables))
+      if(contains(prime_implicants[index_min_prime],minterms[i]))
       {
         minterms[i]=minterms[number_of_minterms-1];
         number_of_minterms--;
@@ -161,7 +178,7 @@ int minimal_solution(int minterms[],int number_of_minterms,int prime_implicants[
 }
 //Calculates the minimum solution from the input values and writes them in the soluction vector.
 //Returns the number of elements in the solution.
-int QMAlgorithm(int inputs[],int number_of_inputs,int solution[],int number_of_variables)
+int QMAlgorithm(int number_of_inputs)
 {
   int next_inputs[power(2,number_of_variables-1)*number_of_variables];
   int prime_implicants[power(2,number_of_variables-1)*number_of_variables];
@@ -171,19 +188,19 @@ int QMAlgorithm(int inputs[],int number_of_inputs,int solution[],int number_of_v
   int number_of_combinations=0;
   int next_inputs_index=0;
   int number_of_minterms=number_of_inputs;
-  int minterms[number_of_minterms];
+  int n=number_of_inputs;
   for(int i=0;i<number_of_minterms;i++)
   {
-    minterms[i]=inputs[i];
+    inputs[i]=minterms[i];
   }
-  while(number_of_inputs>1)
+  while(n>1)
   {
-    for(int i=0;i<number_of_inputs;i++)
+    for(int i=0;i<n;i++)
     {
       number_of_combinations=0;
-      for(int j=0;j<number_of_inputs;j++)
+      for(int j=0;j<n;j++)
       {
-        aux=combine(inputs[i],inputs[j],number_of_variables);
+        aux=combine(inputs[i],inputs[j]);
         if(aux!=-1)
         {
           repetition=0;
@@ -212,70 +229,64 @@ int QMAlgorithm(int inputs[],int number_of_inputs,int solution[],int number_of_v
     {
       inputs[i]=next_inputs[i];
     }
-    number_of_inputs=next_inputs_index;
+    n=next_inputs_index;
     next_inputs_index=0;
   }
-  if(number_of_inputs==1)
+  if(n==1)
   {
     prime_implicants[prime_index]=inputs[0];
     prime_index++;
   }
-  return minimal_solution(minterms,number_of_minterms,prime_implicants,prime_index,solution,number_of_variables);
+  return minimal_solution(number_of_minterms,prime_implicants,prime_index);
 }
 
-void translate_solution(int solution[],int number_of_terms,char translated_solution[],int number_of_variables)
+void translate_solution(int number_of_terms)
 {
   if(number_of_terms==0)
   {
-    translated_solution[0]='0';
-    translated_solution[1]='\0';
+    simplified_equation[0]='0';
+    simplified_equation[1]='\0';
   }
   else if(solution[0]==power(3,number_of_variables)-1)
   {
-    translated_solution[0]='1';
-    translated_solution[1]='\0';
+    simplified_equation[0]='1';
+    simplified_equation[1]='\0';
   }
   else
   {
     char boolean_term[2*number_of_variables+1];
     int translated_index=0;
     int term_index=0;
-    translated_solution[0]='\0';
+    simplified_equation[0]='\0';
     for(int i=0;i<number_of_terms;i++)
     {
-      number_to_boolean(solution[i],boolean_term,number_of_variables);
+      number_to_boolean(solution[i],boolean_term);
       term_index=0;
       while(boolean_term[term_index]!='\0')
       {
-        translated_solution[translated_index]=boolean_term[term_index];
+        simplified_equation[translated_index]=boolean_term[term_index];
         translated_index++;
         term_index++;
       }
-      translated_solution[translated_index]='+';
+      simplified_equation[translated_index]='+';
       translated_index++;
     }
-    translated_solution[translated_index-1]='\0';
+    simplified_equation[translated_index-1]='\0';
   }
 }
 
-void circuit_solver(int truth_table[],char equation[],int number_of_variables)
+void circuit_solver(void)
 {
-  int size_table=power(2,number_of_variables);
-  int inputs[size_table];
   int number_of_inputs=0;
   int number_of_terms=0;
-  int solution[size_table];
-  equation[0]='\0';
-  number_of_inputs=generate_inputs(truth_table,size_table,inputs,number_of_variables);
-  number_of_terms=QMAlgorithm(inputs,number_of_inputs,solution,number_of_variables);
-  translate_solution(solution,number_of_terms,equation,number_of_variables);
+  simplified_equation[0]='\0';
+  number_of_inputs=generate_inputs(power(2,number_of_variables));
+  number_of_terms=QMAlgorithm(number_of_inputs);
+  translate_solution(number_of_terms);
 }
 int main(void) {
-  int tabela_verdade[64]={0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  int n_variaveis_max=6;
-  char retorno[(n_variaveis_max+1)*power(2,n_variaveis_max)];
-  retorno[0]='\0';
-  circuit_solver(tabela_verdade,retorno,n_variaveis_max);
-  printf("%s\n",retorno);
+  simplified_equation[0]='\0';
+  circuit_solver();
+  printf("%s\n",simplified_equation);
 	return 0;
 }
